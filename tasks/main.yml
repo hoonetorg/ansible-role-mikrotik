@@ -84,7 +84,6 @@
     mode: binary
   loop:
     - ssh_host_rsa
-    - ssh_host_rsa.pub
     - www-ssl.key
     - ca.crt
     - www-ssl.crt
