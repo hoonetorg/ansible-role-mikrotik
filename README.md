@@ -1,38 +1,42 @@
-Role Name
-=========
+# ansible-role-mikrotik
 
-A brief description of the role goes here.
+Deploys a complete configuration to a MikroTik RouterOS device:
 
-Requirements
-------------
+1. renders `<filespath>/<inventory_hostname>/config.rsc` (Jinja template) locally
+2. uploads it and the key/certificate files to `/flash` on the device (sftp)
+3. shreds the rendered file locally
+4. resets the device configuration and runs `flash/config.rsc` after the reset
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+**Warning:** step 4 replaces the whole device configuration.
 
-Role Variables
---------------
+## Requirements
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- collections `community.routeros`, `ansible.netcommon`
+- `sshpass` on the control node
+- host vars: `ansible_network_os: community.routeros.routeros`, `ansible_host`, `ansible_user`,
+  `ansible_ssh_pass`
 
-Dependencies
-------------
+## Variables
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+```yaml
+mikrotik:
+  filespath: /srv/ansible/files/<inventory>   # contains one directory per inventory host
+```
 
-Example Playbook
-----------------
+Files per host in `<filespath>/<inventory_hostname>/`: `config.rsc`, `ssh_host_rsa`, `www-ssl.key`,
+`www-ssl.crt`, `ca.crt`.
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+## Example
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```yaml
+- hosts: routeros
+  gather_facts: false
+  roles:
+    - role: ansible-role-mikrotik
+```
 
-License
--------
+## License
 
-BSD
+Apache-2.0
 
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Created with the help of AI
