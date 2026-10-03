@@ -24,11 +24,14 @@
   ansible.builtin.set_fact:
     mikrotik_tmpfile: "/tmp/{{ mikrotik.filespath | trim('/') | replace('/', '-') }}-{{ inventory_hostname }}-config.rsc"
   
+# the rendered config contains secrets (passwords, keys): no diff, no result in output/logs
 - name: render config.rsc for {{ inventory_hostname }}
   ansible.builtin.template:
     src: "{{ mikrotik.filespath }}/{{ inventory_hostname }}/config.rsc"
     dest: "{{ mikrotik_tmpfile }}"
   delegate_to: localhost
+  no_log: true
+  diff: false
 
 - name: copy rendered config.rsc for {{ inventory_hostname }} to flash disk on routeros
   ansible.netcommon.net_put:
