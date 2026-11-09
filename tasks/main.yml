@@ -11,9 +11,12 @@
     var: routeros_resources
 
 
+# password from the environment (sshpass -e), not as argument: arguments are visible in ps
 - name: make flash dir
   ansible.builtin.shell: >-
-    sshpass -p '{{ ansible_ssh_pass }}' ssh -o StrictHostKeyChecking=accept-new {{ ansible_user }}@{{ ansible_host }} /file add type=directory name=/flash
+    sshpass -e ssh -o StrictHostKeyChecking=accept-new {{ ansible_user }}@{{ ansible_host }} /file add type=directory name=/flash
+  environment:
+    SSHPASS: "{{ ansible_ssh_pass }}"
   #register: result
   ignore_errors: true
   no_log: true
@@ -93,7 +96,9 @@
 
 - name: Deploy config
   ansible.builtin.shell: >-
-    sshpass -p '{{ ansible_ssh_pass }}' ssh {{ ansible_user }}@{{ ansible_host }} /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=flash/config.rsc
+    sshpass -e ssh {{ ansible_user }}@{{ ansible_host }} /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=flash/config.rsc
+  environment:
+    SSHPASS: "{{ ansible_ssh_pass }}"
   #register: result
   ignore_errors: true
   changed_when:
