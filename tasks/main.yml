@@ -11,12 +11,12 @@
     var: routeros_resources
 
 
-# password from the environment (sshpass -e), not as argument: arguments are visible in ps
+# password via stdin (sshpass default): arguments and environment end up on a command line (ps, -vvv)
 - name: make flash dir
   ansible.builtin.shell: >-
-    sshpass -e ssh -o StrictHostKeyChecking=accept-new {{ ansible_user }}@{{ ansible_host }} /file add type=directory name=/flash
-  environment:
-    SSHPASS: "{{ ansible_ssh_pass }}"
+    sshpass ssh -o StrictHostKeyChecking=accept-new {{ ansible_user }}@{{ ansible_host }} /file add type=directory name=/flash
+  args:
+    stdin: "{{ ansible_ssh_pass }}"
   #register: result
   ignore_errors: true
   no_log: true
@@ -94,15 +94,14 @@
     - ca.crt
     - www-ssl.crt
 
+# the reset cuts the ssh session: "Received disconnect" = success, anything else fails the task
 - name: Deploy config
   ansible.builtin.shell: >-
-    sshpass -e ssh {{ ansible_user }}@{{ ansible_host }} /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=flash/config.rsc
-  environment:
-    SSHPASS: "{{ ansible_ssh_pass }}"
-  #register: result
-  ignore_errors: true
-  changed_when:
-    - '"Received disconnect" in result.stderr'
+    sshpass ssh {{ ansible_user }}@{{ ansible_host }} /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=flash/config.rsc
+    2>&1 | grep -q "Received disconnect"
+  args:
+    stdin: "{{ ansible_ssh_pass }}"
+  changed_when: true
   #community.routeros.command:
   #  commands: 
   #    - /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=flash/config.rsc
