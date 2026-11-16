@@ -94,11 +94,11 @@
     - ca.crt
     - www-ssl.crt
 
-# the reset cuts the ssh session: "Received disconnect" = success, anything else fails the task
+# the reset ends the ssh session: exit code 0 or 255 = success, sshpass errors (e.g. 5 = wrong password) fail
 - name: Deploy config
   ansible.builtin.shell: >-
-    sshpass ssh {{ ansible_user }}@{{ ansible_host }} /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=flash/config.rsc
-    2>&1 | grep -q "Received disconnect"
+    sshpass ssh {{ ansible_user }}@{{ ansible_host }} /system reset-configuration no-defaults=yes skip-backup=yes run-after-reset=flash/config.rsc;
+    rc=$?; [ $rc -eq 0 ] || [ $rc -eq 255 ]
   args:
     stdin: "{{ ansible_ssh_pass }}"
   changed_when: true
